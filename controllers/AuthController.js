@@ -46,16 +46,15 @@ const login = async (req, res) => {
                 .json({ message: errorMsg, success: false });
         }
         const jwtToken = jwt.sign(
-            { email: user.email, _id: user._id },
+            { email: user.email, _id: user._id,name:user.name},
             process.env.JWT_SECRET,
             { expiresIn: '24h' }
         )
-
+        res.header('X-Auth-Token', jwtToken);
         res.status(200)
             .json({
                 message: "Login Success",
                 success: true,
-                jwtToken,
                 email,
                 name: user.name
             })
@@ -70,13 +69,54 @@ const login = async (req, res) => {
 
 
 // Méthode pour gérer la réponse de l'authentification via Google
+// const googleAuthCallback = async (req, res) => {
+//     try {
+//         const { id, displayName, emails } = req.user; // Profil retourné par Google
+//         const email = emails[0].value; // Récupérer l'email principal
+//         const name = displayName; // Utiliser directement displayName
+
+//         console.log("Google User Profile:", req.user); // Log pour déboguer
+
+//         // Vérifiez si l'utilisateur existe déjà dans la base de données
+//         let user = await UserModel.findOne({ googleId: id });
+
+//         if (!user) {
+//             // Si l'utilisateur n'existe pas, le créer
+//             user = new UserModel({
+//                 googleId: id,
+//                 name, // Utiliser displayName pour le champ 'name'
+//                 email,
+//             });
+
+//             await user.save(); // Sauvegarder l'utilisateur
+//         }
+
+//         // Générer un token JWT
+//         const jwtToken = jwt.sign(
+//             { email: user.email, _id: user._id },
+//             process.env.JWT_SECRET,
+//             { expiresIn: '24h' }
+//         );
+
+//         // Rediriger avec le token ou renvoyer une réponse JSON
+//         res.redirect(`http://localhost:3000/home?token=${jwtToken}`);
+//     } catch (err) {
+//         console.error('Google Auth Error:', err.message);
+//         res.status(500).json({
+//             message: "Google authentication failed",
+//             success: false
+//         });
+//     }
+// };
+// Méthode pour gérer la réponse de l'authentification via Google
 const googleAuthCallback = async (req, res) => {
     try {
-        const { id, displayName, emails } = req.user; // Profil retourné par Google
-        const email = emails[0].value; // Récupérer l'email à partir du profil Google
-        
-        console.log("Google User Profile:", req.user); // Log pour vérifier
-        
+        const { id, displayName, emails,name } = req.user; // Profil retourné par Google
+        const email = emails[0].value; // Récupérer l'email principal
+        const fullName = displayName; // Utiliser directement displayName
+
+        console.log("Google User Profile:", req.user); // Log pour déboguer
+
         // Vérifiez si l'utilisateur existe déjà dans la base de données
         let user = await UserModel.findOne({ googleId: id });
 
@@ -84,24 +124,23 @@ const googleAuthCallback = async (req, res) => {
             // Si l'utilisateur n'existe pas, le créer
             user = new UserModel({
                 googleId: id,
-                name: displayName, // Assurez-vous d'utiliser displayName pour le champ 'name'
+                name:fullName, // Utiliser displayName pour le champ 'name'
                 email,
             });
 
-            await user.save();  // Sauvegarder l'utilisateur dans la base de données
+            await user.save(); // Sauvegarder l'utilisateur
         }
-
         // Générer un token JWT
         const jwtToken = jwt.sign(
-            { email: user.email, _id: user._id },
+            { email: user.email, _id: user._id, name:name.givenName }, // Ajouter le champ 'name'
             process.env.JWT_SECRET,
             { expiresIn: '24h' }
         );
 
         // Rediriger avec le token ou renvoyer une réponse JSON
-        res.redirect(`http://localhost:3000/home?token=${jwtToken}`); // Exemple de redirection après succès
+        res.redirect(`http://localhost:3000/home?token=${jwtToken}`);
     } catch (err) {
-        console.error('Google Auth Error:', err);
+        console.error('Google Auth Error:', err.message);
         res.status(500).json({
             message: "Google authentication failed",
             success: false

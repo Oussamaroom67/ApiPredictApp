@@ -4,7 +4,8 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const passport = require("passport");
 const session = require("express-session");
-
+// Initialisation de l'application
+const app = express();
 // Import des routes
 const AuthRouter = require("./Routes/AuthRouter"); // Auth routes
 const predictrouter = require("./Routes/predictRoute"); // Predict routes
@@ -13,20 +14,18 @@ const predictrouter = require("./Routes/predictRoute"); // Predict routes
 require("dotenv").config();
 
 // Connexion à la base de données MongoDB
-mongoose.connect("mongodb+srv://crud:crud@cluster0.gk1j5.mongodb.net/auth-db?retryWrites=true&w=majority&appName=Cluster0", { 
-    useNewUrlParser: true,
-    useUnifiedTopology: true})
+mongoose.connect("mongodb+srv://siafomaima5:yz41njOlsSkSasxH@prediction.hynfw.mongodb.net/?retryWrites=true&w=majority&appName=Prediction")
     .then(() => {
         console.log("connect to Database");
         app.use("/api/predict",predictrouter);
         app.use("/api/history",predictrouter);
-        
+        app.use("/auth", AuthRouter); // Routes liées à l'authentification
+
     })
     .catch((err) => {
         console.log(err);
    });
-// Initialisation de l'application
-const app = express();
+
 
 // Middleware pour traiter les données JSON et gérer les CORS
 app.use(bodyParser.json());
@@ -54,12 +53,10 @@ app.get("/ping", (req, res) => {
 });
 
 // Définir les routes
-app.use("/auth", AuthRouter); // Routes liées à l'authentification
-app.use("/api/predict", predictrouter); // Routes liées à la prédiction
 
 
-process.on('uncaughtException', () => {
-    console.error('Uncaught error, shutting down gracefully');
+process.on('uncaughtException', (err) => {
+    console.error('error', err);
     process.exit(1);  // Exit with an error code
 });
 const port = process.env.port||8080;

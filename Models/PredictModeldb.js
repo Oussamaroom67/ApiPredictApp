@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const PredictSchema = new mongoose.Schema({
-    name: {
+    disease: {
         type: String,
         required: true,
         trim: true

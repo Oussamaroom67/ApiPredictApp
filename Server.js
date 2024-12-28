@@ -12,11 +12,17 @@ mongoose.connect("mongodb+srv://siafomaima5:yz41njOlsSkSasxH@prediction.hynfw.mo
     .then(() => {
         console.log("connect to Database");
         app.use("/api/predict",predictrouter);
+        app.use("/api/history",predictrouter);
+        
     })
     .catch((err) => {
         console.log(err);
 });
-const port = process.env.port||3001;
+process.on('uncaughtException', () => {
+    console.error('Uncaught error, shutting down gracefully');
+    process.exit(1);  // Exit with an error code
+});
+const port = process.env.port||8080;
 app.listen(port,()=>{
     console.log(`Listening in port ${port}`);
 })

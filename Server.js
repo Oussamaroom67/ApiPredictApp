@@ -1,14 +1,21 @@
-const mongoose = require("mongoose");
 const express = require("express");
-const predictrouter = require('./Routes/predictRoute');
+const bodyParser = require("body-parser");
 const cors = require("cors");
-const app = express();
-app.use(cors());
-app.use(express.json())
-mongoose.connect("mongodb+srv://siafomaima5:yz41njOlsSkSasxH@prediction.hynfw.mongodb.net/?retryWrites=true&w=majority&appName=Prediction", { 
+const mongoose = require("mongoose");
+const passport = require("passport");
+const session = require("express-session");
+
+// Import des routes
+const AuthRouter = require("./Routes/AuthRouter"); // Auth routes
+const predictrouter = require("./Routes/predictRoute"); // Predict routes
+
+// Charger les variables d'environnement
+require("dotenv").config();
+
+// Connexion à la base de données MongoDB
+mongoose.connect("mongodb+srv://crud:crud@cluster0.gk1j5.mongodb.net/auth-db?retryWrites=true&w=majority&appName=Cluster0", { 
     useNewUrlParser: true,
-    useUnifiedTopology: true
-    })
+    useUnifiedTopology: true})
     .then(() => {
         console.log("connect to Database");
         app.use("/api/predict",predictrouter);
@@ -17,7 +24,40 @@ mongoose.connect("mongodb+srv://siafomaima5:yz41njOlsSkSasxH@prediction.hynfw.mo
     })
     .catch((err) => {
         console.log(err);
+   });
+// Initialisation de l'application
+const app = express();
+
+// Middleware pour traiter les données JSON et gérer les CORS
+app.use(bodyParser.json());
+app.use(cors());
+
+// Configuration de Express-session (nécessaire pour Passport)
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "default_secret",
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+
+// Initialisation de Passport.js
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Charger la configuration Passport
+require("./config/passport");
+
+// Middleware pour vérifier le bon fonctionnement
+app.get("/ping", (req, res) => {
+  res.send("PONG");
 });
+
+// Définir les routes
+app.use("/auth", AuthRouter); // Routes liées à l'authentification
+app.use("/api/predict", predictrouter); // Routes liées à la prédiction
+
+
 process.on('uncaughtException', () => {
     console.error('Uncaught error, shutting down gracefully');
     process.exit(1);  // Exit with an error code

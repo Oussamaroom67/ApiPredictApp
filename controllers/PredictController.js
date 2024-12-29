@@ -46,7 +46,7 @@ let getSymptomes = async(req,res)=>{
 }      
 let getHistory = async (req,res)=>{
     try{
-        let userId = req.body.userId;
+        let userId = req.query.userId;
         predict.find({Userid:userId}).then((predictions)=>{
             res.json(predictions);
         }).catch((err)=>{

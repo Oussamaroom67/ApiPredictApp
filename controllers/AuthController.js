@@ -31,39 +31,78 @@ const signup = async (req, res) => {
 
 
 // Login (connexion classique)
+// const login = async (req, res) => {
+//     try {
+//         const { email, password } = req.body;
+//         const user = await UserModel.findOne({ email });
+//         const errorMsg = 'Auth failed, email or password is wrong';
+//         if (!user) {
+//             return res.status(403)
+//                 .json({ message: errorMsg, success: false });
+//         }
+//         const isPassEqual = await bcrypt.compare(password, user.password);
+//         if (!isPassEqual) {
+//             return res.status(403)
+//                 .json({ message: errorMsg, success: false });
+//         }
+//         const jwtToken = jwt.sign(
+//             { email: user.email, _id: user._id,name:user.name},
+//             process.env.JWT_SECRET,
+//             { expiresIn: '24h' }
+//         )
+//         res.header('X-Auth-Token', jwtToken);
+//         res.status(200)
+//             .json({
+//                 message: "Login Success",
+//                 success: true,
+//                 email,
+//                 name: user.name
+//             })
+//     } catch (err) {
+//         res.status(500)
+//             .json({
+//                 message: "Internal server error",
+//                 success: false
+//             });
+//     }
+// };
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
         const user = await UserModel.findOne({ email });
         const errorMsg = 'Auth failed, email or password is wrong';
         if (!user) {
-            return res.status(403)
-                .json({ message: errorMsg, success: false });
+            return res.status(403).json({ message: errorMsg, success: false });
         }
         const isPassEqual = await bcrypt.compare(password, user.password);
         if (!isPassEqual) {
-            return res.status(403)
-                .json({ message: errorMsg, success: false });
+            return res.status(403).json({ message: errorMsg, success: false });
         }
+
         const jwtToken = jwt.sign(
-            { email: user.email, _id: user._id,name:user.name},
+            { email: user.email, _id: user._id, name: user.name },
             process.env.JWT_SECRET,
             { expiresIn: '24h' }
-        )
-        res.header('X-Auth-Token', jwtToken);
-        res.status(200)
-            .json({
-                message: "Login Success",
-                success: true,
-                email,
-                name: user.name
-            })
+        );
+
+        // Définir le token dans l'en-tête Authorization
+        res.setHeader('X-auth-token', jwtToken);
+
+        // Retourner le token dans la réponse JSON
+        res.status(200).json({
+            message: "Login Success",
+            success: true,
+            email,
+            name: user.name,
+            jwtToken,
+            userId:user._id,
+        });
+
     } catch (err) {
-        res.status(500)
-            .json({
-                message: "Internal server error",
-                success: false
-            });
+        res.status(500).json({
+            message: "Internal server error",
+            success: false
+        });
     }
 };
 
@@ -136,9 +175,9 @@ const googleAuthCallback = async (req, res) => {
             process.env.JWT_SECRET,
             { expiresIn: '24h' }
         );
-
+        
         // Rediriger avec le token ou renvoyer une réponse JSON
-        res.redirect(`http://localhost:3000/home?token=${jwtToken}`);
+        res.redirect(`http://localhost:3000/predict`);
     } catch (err) {
         console.error('Google Auth Error:', err.message);
         res.status(500).json({

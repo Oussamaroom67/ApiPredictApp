@@ -169,6 +169,10 @@ const googleAuthCallback = async (req, res) => {
 
             await user.save(); // Sauvegarder l'utilisateur
         }
+        console.log("-----");
+        console.log(user._id);
+        console.log(name.givenName);
+
         // Générer un token JWT
         const jwtToken = jwt.sign(
             { email: user.email, _id: user._id, name:name.givenName }, // Ajouter le champ 'name'
@@ -177,7 +181,7 @@ const googleAuthCallback = async (req, res) => {
         );
         
         // Rediriger avec le token ou renvoyer une réponse JSON
-        res.redirect(`http://localhost:3000/predict`);
+        res.redirect(`http://localhost:3000/predict?token=${jwtToken}&userName=${name.givenName}&userId=${user._id}`);
     } catch (err) {
         console.error('Google Auth Error:', err.message);
         res.status(500).json({
